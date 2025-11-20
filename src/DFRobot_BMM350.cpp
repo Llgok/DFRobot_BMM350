@@ -423,11 +423,10 @@ sBmm350ThresholdData_t DFRobot_BMM350::getThresholdData(void)
 static int8_t bmm350I2cReadData(uint8_t Reg, uint8_t *Data, uint32_t len, void *intfPtr)
 {
     uint8_t deviceAddr = *(uint8_t *)intfPtr;
-    _pWire->begin();
     int i = 0;
     _pWire->beginTransmission(deviceAddr);
     _pWire->write(Reg);
-    if (_pWire->endTransmission() != 0)
+    if (_pWire->endTransmission(false) != 0)
     {
         return -1;
     }
@@ -442,7 +441,6 @@ static int8_t bmm350I2cReadData(uint8_t Reg, uint8_t *Data, uint32_t len, void *
 static int8_t bmm350I2cWriteData(uint8_t Reg, const uint8_t *Data, uint32_t len, void *intfPtr)
 {
     uint8_t deviceAddr = *(uint8_t *)intfPtr;
-    _pWire->begin();
     _pWire->beginTransmission(deviceAddr);
     _pWire->write(Reg);
     for (uint8_t i = 0; i < len; i++)
@@ -462,22 +460,11 @@ DFRobot_BMM350_I2C::DFRobot_BMM350_I2C(TwoWire *pWire, uint8_t addr) : DFRobot_B
 uint8_t DFRobot_BMM350_I2C::begin()
 {
     _pWire->begin();
-    _pWire->beginTransmission(bmm350I2CAddr);
-    if (_pWire->endTransmission() == 0)
+    if (sensorInit() == false)
     {
-        if (sensorInit())
-        {
-            return 0;
-        }
-        else
-        {
-            DBG("Chip id error ,please check sensor!");
-            return 2;
-        }
+        DBG("Chip id error ,please check sensor!");
+        return false;
     }
-    else
-    {
-        DBG("I2C device address error or no connection!");
-        return 1;
-    }
+
+    return true;
 }
